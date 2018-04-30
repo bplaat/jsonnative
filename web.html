@@ -1,0 +1,177 @@
+<style>
+*{box-sizing:border-box}
+.screen{width:602px;height:802px;position:relative;overflow-y:scroll;border:1px solid}
+.screen,button{font-family:sans-serif;font-size:16px;line-height:1.2;}
+img,div,button{display:block;width:100%}
+.hbox{display:flex}
+</style>
+
+<div id="x" class="screen"></div>
+
+<script>
+
+var json = {
+    first: {
+        "head": {
+            "title": "First page",
+            "styles": {
+                "blue": { "background-color": "blue" },
+                "big": { "font-size": "24", "font-style": "italic" }
+            }
+        },
+        "body": [
+            { "type": "image", "url": "https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fimages4.fanpop.com%2Fimage%2Fphotos%2F14700000%2FBeautifull-cat-cats-14749885-1600-1200.jpg&f=1" },
+            { "type": "label", "text": "A photo of a nice and cute cat!", "class": "blue big", "style": { "color": "#ffffff", "background-color": "#2299ff", "padding": "16" } },
+            { "type": "button", "text": "Simple button", "style": { "margin-top": "16" } },
+            { "type": "box", "style": { "height": "1", "background-color": "#dddddd" } },
+            { "type": "hbox", "style": { "padding": "8" }, "children": [
+                { "type": "image", "url": "https://duckduckgo.com/assets/icons/meta/DDG-iOS-icon_152x152.png", "style": { "width": "64", "height": "64", "margin-right": "8" } },
+                { "type": "vbox", "children": [
+                    { "type": "label", "text": "Duckduckgo", "style": { "margin-bottom": "4", "font-weight": "bold" } },
+                    { "type": "label", "text": "The search engine that doesn't track you.", "style": { "color": "#666666" } }
+                ]}
+            ]},
+            { "type": "box", "style": { "height": "1", "background-color": "#dddddd" } },
+            { "type": "hbox", "style": { "padding": "8" }, "children": [
+                { "type": "image", "url": "https://developer.android.com/_static/b7f71dd5fb/images/android/touchicon-180.png", "style": { "width": "64", "height": "64", "margin-right": "8" } },
+                { "type": "button", "style": { "width": "32", "margin": "0 20 0 0" }, "text": "H!" },
+                { "type": "vbox", "children": [
+                    { "type": "label", "text": "Android", "style": { "margin-bottom": "4", "font-weight": "bold" } },
+                    { "type": "label", "text": "The best mobile OS on the world :)", "style": { "color": "#666666" } }
+                ]}
+            ]},
+            { "type": "box", "style": { "height": "1", "background-color": "#dddddd" } }
+        ]
+    },
+    next: {
+        "head": {
+            "title": "Next page"
+        },
+        "body": [
+            { "type": "label", "text": "Next page" },
+            { "type": "button", "text": "Go third back", "href": { "url": "third" } },
+            { "type": "button", "text": "Go back", "href": { "url": "back" } },
+        ]
+    },
+    third: {
+        "body": [
+            { "type": "label", "text": "Third page" },
+            { "type": "button", "text": "Go back", "href": { "url": "back" } },
+        ]
+    },
+};
+
+function renderBox (root, head, children) {
+    for (var i = 0; i < children.length; i++) {
+        if (!children[i].style) children[i].style = {};
+
+        // Class
+        if (children[i].class) {
+            var classes = children[i].class.split(' ');
+            for (var j = 0; j < classes.length; j++)
+                for (var key in head.styles[classes[j]])
+                    if (!children[i].style[key])
+                        children[i].style[key] = head.styles[classes[j]][key];
+        }
+
+        // Widgets
+        if (children[i].type == 'image') {
+            var view = document.createElement('img');
+            view.src = children[i].url;
+        }
+        if (children[i].type == 'label') {
+            var view = document.createElement('div');
+            view.textContent = children[i].text;
+        }
+        if (children[i].type == 'button') {
+            var view = document.createElement('button');
+            view.textContent = children[i].text;
+            if (!children[i].style.margin) children[i].style.margin = '4';
+            if (!children[i].style.padding) children[i].style.padding = '16';
+        }
+
+        // Boxes
+        if (children[i].type == 'box') {
+            var view = document.createElement('div');
+        }
+        if (children[i].type == 'vbox') {
+            var view = document.createElement('div');
+            renderBox(view, head, children[i].children);
+        }
+        if (children[i].type == 'hbox') {
+            var view = document.createElement('div');
+            view.className = "hbox";
+            renderBox(view, head, children[i].children);
+        }
+
+        // Link href
+        if (children[i].href) {
+            view.target = children[i].href.url;
+            view.onclick = function () { openPage(this.target); }
+        }
+
+        // Style
+        console.log(children[i].style);
+        if (children[i].style.width) view.style.width = children[i].style.width + 'px';
+        if (children[i].style.height) view.style.height = children[i].style.height + 'px';
+
+        // Padding
+        var paddingTop = 0, paddingRight = 0, paddingBottom = 0, paddingLeft = 0;
+        if (children[i].style.padding) {
+            var paddings = children[i].style.padding.split(' ');
+            if (paddings.length == 1) paddingTop = paddingRight = paddingBottom = paddingLeft = paddings[0];
+            if (paddings.length == 2) paddingTop = paddingBottom = paddings[0], paddingRight = paddingLeft = paddings[1];
+            if (paddings.length == 3) paddingTop = paddings[0], paddingRight = paddingLeft = paddings[1], paddingBottom = paddings[2];
+            if (paddings.length == 4) paddingTop = paddings[0], paddingRight = paddings[1], paddingBottom = paddings[2], paddingLeft = paddings[3];
+        }
+        if (children[i].style['padding-top']) paddingTop = children[i].style['padding-top'];
+        if (children[i].style['padding-right']) paddingRight = children[i].style['padding-right'];
+        if (children[i].style['padding-bottom']) paddingBottom = children[i].style['padding-bottom'];
+        if (children[i].style['padding-left']) paddingLeft = children[i].style['padding-left'];
+        view.style.padding = paddingTop + 'px ' + paddingRight + 'px ' + paddingBottom + 'px ' + paddingLeft + 'px';
+
+        // Margins
+        var marginTop = 0, marginRight = 0, marginBottom = 0, marginLeft = 0;
+        if (children[i].style.margin) {
+            var margins = children[i].style.margin.split(' ');
+            if (margins.length == 1) marginTop = marginRight = marginBottom = marginLeft = margins[0];
+            if (margins.length == 2) marginTop = marginBottom = margins[0], marginRight = marginLeft = margins[1];
+            if (margins.length == 3) marginTop = margins[0], marginRight = marginLeft = margins[1], marginBottom = margins[2];
+            if (margins.length == 4) marginTop = margins[0], marginRight = margins[1], marginBottom = margins[2], marginLeft = margins[3];
+        }
+        if (children[i].style['margin-top']) marginTop = children[i].style['margin-top'];
+        if (children[i].style['margin-right']) marginRight = children[i].style['margin-right'];
+        if (children[i].style['margin-bottom']) marginBottom = children[i].style['margin-bottom'];
+        if (children[i].style['margin-left']) marginLeft = children[i].style['margin-left'];
+        view.style.margin = marginTop + 'px ' + marginRight + 'px ' + marginBottom + 'px ' + marginLeft + 'px';
+
+        // Fonts
+        if (children[i].style['font-size']) view.style.fontSize = children[i].style['font-size'] + 'px';
+        if (children[i].style['font-weight'] && children[i].style['font-weight'] == 'bold') view.style.fontWeight = 'bold';
+        if (children[i].style['font-style'] && children[i].style['font-style'] == 'italic') view.style.fontStyle = 'italic';
+
+        // Colors
+        if (children[i].style['background-color']) view.style.backgroundColor = children[i].style['background-color'];
+        if (children[i].style.color) view.style.color = children[i].style.color;
+
+        root.appendChild(view);
+    }
+}
+
+var page_history = [];
+function openPage (name) {
+    if (name == 'back') {
+        page_history.pop();
+        name = page_history[page_history.length - 1];
+    } else {
+        page_history.push(name);
+    }
+
+    document.title = json[name].head ? (json[name].head.title ? json[name].head.title : 'Untitled') : 'Untitled';
+    x.innerHTML = '';
+    renderBox(x, json[name].head, json[name].body);
+}
+
+openPage('first');
+
+</script>
