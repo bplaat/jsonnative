@@ -9,6 +9,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <meta-data android:name="start_url" android:value="https://api.myjson.com/bins/caziv" />
     </application>
 </manifest>

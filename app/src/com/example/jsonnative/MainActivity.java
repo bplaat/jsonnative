@@ -1,28 +1,26 @@
 package com.example.jsonnative;
 
 import android.app.Activity;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Typeface;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.text.InputType;
 import android.view.View;
 
-import android.widget.ScrollView;
-import android.widget.LinearLayout;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Objects;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -64,32 +62,36 @@ public class MainActivity extends Activity {
             View view = null;
 
             // Boxes
-            if (Objects.equals(type, "box")) {
+            if (type.equals("box")) {
                 view = new View(this);
             }
-            if (Objects.equals(type, "hbox")) {
+            if (type.equals("hbox")) {
                 view = new LinearLayout(this);
                 renderBox(head, (LinearLayout)view, child.getJSONArray("children"));
             }
-            if (Objects.equals(type, "vbox")) {
+            if (type.equals("vbox")) {
                 view = new LinearLayout(this);
                 ((LinearLayout)view).setOrientation(LinearLayout.VERTICAL);
                 renderBox(head, (LinearLayout)view, child.getJSONArray("children"));
             }
 
             // Widgets
-            if (Objects.equals(type, "image")) {
+            if (type.equals("label")) {
+                view = new TextView(this);
+            }
+            if (type.equals("button")) {
+                view = new Button(this);
+                if (!style.has("padding")) style.put("padding", "12");
+            }
+            if (type.equals("image")) {
                 view = new ImageView(this);
                 ((ImageView)view).setImageBitmap(fetchBitmap(child.getString("url")));
             }
-            if (Objects.equals(type, "button")) {
-                view = new Button(this);
-                ((Button)view).setText(child.getString("text"));
-                if (!style.has("padding")) style.put("padding", "16");
-            }
-            if (Objects.equals(type, "label")) {
-                view = new TextView(this);
-                ((TextView)view).setText(child.getString("text"));
+            if (type.equals("input")) {
+                view = new EditText(this);
+                if (child.has("hint")) ((EditText)view).setHint(child.getString("hint"));
+                if (child.has("password")) ((EditText)view).setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                if (!style.has("padding")) style.put("padding", "12");
             }
 
             // Width & height
@@ -129,29 +131,21 @@ public class MainActivity extends Activity {
             if (style.has("padding-left")) paddingLeft = Integer.parseInt(style.getString("padding-left"));
             view.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
 
-            // Font
-            if (style.has("font-size")) {
-                if (Objects.equals(type, "button")) ((Button)view).setTextSize(Float.parseFloat(style.getString("font-size")));
-                if (Objects.equals(type, "label")) ((TextView)view).setTextSize(Float.parseFloat(style.getString("font-size")));
-            }
-            if (style.has("font-weight") && Objects.equals(style.getString("font-weight"), "bold")) {
-                if (Objects.equals(type, "button")) ((Button)view).setTypeface(null, Typeface.BOLD);
-                if (Objects.equals(type, "label")) ((TextView)view).setTypeface(null, Typeface.BOLD);
-            }
-            if (style.has("font-style") && Objects.equals(style.getString("font-style"), "italic")) {
-                if (Objects.equals(type, "button")) ((Button)view).setTypeface(null, Typeface.ITALIC);
-                if (Objects.equals(type, "label")) ((TextView)view).setTypeface(null, Typeface.ITALIC);
-                if (style.has("font-weight") && Objects.equals(style.getString("font-weight"), "bold")) {
-                    if (Objects.equals(type, "button")) ((Button)view).setTypeface(null, Typeface.BOLD_ITALIC);
-                    if (Objects.equals(type, "label")) ((TextView)view).setTypeface(null, Typeface.BOLD_ITALIC);
-                }
-            }
-
-            // Color
+            // Background color
             if (style.has("background-color")) view.setBackgroundColor(Color.parseColor(style.getString("background-color")));
-            if (style.has("color")) {
-                if (Objects.equals(type, "button")) ((Button)view).setTextColor(Color.parseColor(style.getString("color")));
-                if (Objects.equals(type, "label")) ((TextView)view).setTextColor(Color.parseColor(style.getString("color")));
+
+            // Text/Font styles
+            if (type.equals("label") || type.equals("button") || type.equals("input")) {
+                if (child.has("text")) ((TextView)view).setText(child.getString("text"));
+                if (style.has("color")) ((TextView)view).setTextColor(Color.parseColor(style.getString("color")));
+                if (style.has("font-size")) ((TextView)view).setTextSize(Float.parseFloat(style.getString("font-size")));
+                if (style.has("font-weight") && style.getString("font-weight").equals("bold")) ((TextView)view).setTypeface(null, Typeface.BOLD);
+                if (style.has("font-style") && style.getString("font-style").equals("italic")) {
+                    ((TextView)view).setTypeface(null, Typeface.ITALIC);
+                    if (style.has("font-weight") && style.getString("font-weight").equals("bold")) {
+                        ((TextView)view).setTypeface(null, Typeface.BOLD_ITALIC);
+                    }
+                }
             }
 
             view.setLayoutParams(layoutParams);
@@ -169,8 +163,7 @@ public class MainActivity extends Activity {
             root.setOrientation(LinearLayout.VERTICAL);
             scroll.addView(root);
 
-            ApplicationInfo ai = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
-            JSONObject page = new JSONObject(fetch(ai.metaData.getString("start_url")));
+            JSONObject page = new JSONObject(fetch("https://bastiaan.plaatsoft.nl/app.json"));
             renderBox(page.getJSONObject("head"), root, page.getJSONArray("body"));
         } catch (Exception e) {
             Log.d("jn", Log.getStackTraceString(e));
