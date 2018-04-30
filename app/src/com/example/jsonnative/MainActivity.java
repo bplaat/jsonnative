@@ -1,11 +1,13 @@
 package com.example.jsonnative;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.text.InputType;
@@ -26,7 +28,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class MainActivity extends Activity {
-    public static String fetch (String url) throws Exception {
+    public JSONObject head;
+
+    public static String fetch(String url) throws Exception {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new URL(url).openConnection().getInputStream()));
         StringBuilder stringBuilder = new StringBuilder();
         String line; while ((line = bufferedReader.readLine()) != null) stringBuilder.append(line);
@@ -34,11 +38,11 @@ public class MainActivity extends Activity {
         return stringBuilder.toString();
     }
 
-    public static Bitmap fetchBitmap (String url) throws Exception {
+    public static Bitmap fetchBitmap(String url) throws Exception {
         return BitmapFactory.decodeStream(new URL(url).openConnection().getInputStream());
     }
 
-    public void renderBox (JSONObject head, LinearLayout root, JSONArray children) throws Exception {
+    public void renderBox(LinearLayout root, JSONArray children) throws Exception {
         for (int i = 0; i < children.length(); i++) {
             JSONObject child = children.getJSONObject(i);
 
@@ -67,12 +71,12 @@ public class MainActivity extends Activity {
             }
             if (type.equals("hbox")) {
                 view = new LinearLayout(this);
-                renderBox(head, (LinearLayout)view, child.getJSONArray("children"));
+                renderBox((LinearLayout)view, child.getJSONArray("children"));
             }
             if (type.equals("vbox")) {
                 view = new LinearLayout(this);
                 ((LinearLayout)view).setOrientation(LinearLayout.VERTICAL);
-                renderBox(head, (LinearLayout)view, child.getJSONArray("children"));
+                renderBox((LinearLayout)view, child.getJSONArray("children"));
             }
 
             // Widgets
@@ -89,9 +93,35 @@ public class MainActivity extends Activity {
             }
             if (type.equals("input")) {
                 view = new EditText(this);
+                ((EditText)view).setInputType(child.has("password") ? InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD : InputType.TYPE_CLASS_TEXT);
                 if (child.has("hint")) ((EditText)view).setHint(child.getString("hint"));
-                if (child.has("password")) ((EditText)view).setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 if (!style.has("padding")) style.put("padding", "12");
+            }
+
+            // Href onclick Link
+            if (child.has("href")) {
+                view.setTag(child.getJSONObject("href"));
+                view.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View view) {
+                        try {
+                            JSONObject href = (JSONObject)view.getTag();
+                            String url = href.getString("url");
+                            if (url.equals("back")) {
+                                MainActivity.this.finish();
+                            } else {
+                                if (href.has("view") && href.getString("view").equals("web")) {
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                                } else {
+                                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                                    intent.putExtra("url", url);
+                                    startActivity(intent);
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.d("jn", Log.getStackTraceString(e));
+                        }
+                    }
+                });
             }
 
             // Width & height
@@ -142,9 +172,7 @@ public class MainActivity extends Activity {
                 if (style.has("font-weight") && style.getString("font-weight").equals("bold")) ((TextView)view).setTypeface(null, Typeface.BOLD);
                 if (style.has("font-style") && style.getString("font-style").equals("italic")) {
                     ((TextView)view).setTypeface(null, Typeface.ITALIC);
-                    if (style.has("font-weight") && style.getString("font-weight").equals("bold")) {
-                        ((TextView)view).setTypeface(null, Typeface.BOLD_ITALIC);
-                    }
+                    if (style.has("font-weight") && style.getString("font-weight").equals("bold")) ((TextView)view).setTypeface(null, Typeface.BOLD_ITALIC);
                 }
             }
 
@@ -163,8 +191,11 @@ public class MainActivity extends Activity {
             root.setOrientation(LinearLayout.VERTICAL);
             scroll.addView(root);
 
-            JSONObject page = new JSONObject(fetch("https://bastiaan.plaatsoft.nl/app.json"));
-            renderBox(page.getJSONObject("head"), root, page.getJSONArray("body"));
+            Intent intent = getIntent();
+            JSONObject page = new JSONObject(fetch(intent.hasExtra("url") ? intent.getStringExtra("url") : "https://bastiaan.plaatsoft.nl/app.json"));
+            head = page.has("head") ? page.getJSONObject("head") : new JSONObject();
+            if (head.has("title")) setTitle(head.getString("title"));
+            renderBox(root, page.getJSONArray("body"));
         } catch (Exception e) {
             Log.d("jn", Log.getStackTraceString(e));
         }

@@ -2,8 +2,10 @@
 A native JSON renderer!!! FOR ANDROID!!!
 
 ## How to build your own
-Change the `start_url` in the `app/AndroidManifest.xml` file
-then run `./build.sh` and plug your phone in
+Change the url at the bottom of `MainActivity.java`
+
+## Web version included!
+See the web.html file!!!
 
 ## For more info
 Visit a very similair project called Jasonette:
