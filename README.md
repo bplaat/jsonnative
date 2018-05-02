@@ -20,22 +20,24 @@ The simplest page you can make is:
     ]
 }
 ```
+For a more deeper example goto `app.json`.
+
 This renders only a simple label (TextView) on the standard vertical scrollview with a vertical LinearLayout.
 
 ## Widgets
 So as you can see contains the body contains a array of widgets / objects, this is the table of all the widgets:
 
-| Type name     | Child(ren)?   | Android class | Description  |
-| ------------- |---------------| ------------- | ------------ |
-| box           | -             | View          | A simple box for decorative purpose: like a horizontal border in a list |
-| vbox          | children      | vertical LinearLayout | A vertical box for children widgets|
-| hbox          | children      | LinearLayout | A horizontal box for children widgets|
-| vscroll       | child      | ScrollView | A vertical scroll box for a child widget|
-| hscroll       | child     | HorizontalScrollView | A horizontal scroll box for child widget|
-| label         | TextView             | View          | A text label |
-| button        | Button             | View          | A native button |
-| image         | ImageView             | View          | A image |
-| input         | EditText             | View          | A text input |
+| Type name     | Child(ren)? | Android class | Description  |
+| ------------- |------------ | ------------- | ------------ |
+| box           | -           | View          | A simple box for decorative purpose: like a horizontal border in a list |
+| vbox          | children    | vertical LinearLayout | A vertical box for children widgets|
+| hbox          | children    | LinearLayout  | A horizontal box for children widgets|
+| vscroll       | child       | ScrollView    | A vertical scroll box for a child widget|
+| hscroll       | child       | HorizontalScrollView | A horizontal scroll box for child widget|
+| label         | -           | TextView      | A text label |
+| button        | -           | Button        | A native button |
+| image         | -           | ImageView     | A image |
+| input         | -           | EditText      | A text input |
 
 ## For more info
 Visit a very similair project called Jasonette:
