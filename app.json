@@ -1,0 +1,33 @@
+{
+    "head": {
+        "title": "Demo app",
+        "styles": {
+            "header": { "padding": "16", "font-weight": "bold" },
+            "big": { "font-size": "24" }
+        }
+    },
+    "body": [
+        {"type": "stack", "children": [
+            {"type":"button","text":"Hello World!"},
+            {"type":"label","text":"abc"}
+        ]},
+        { "type": "label", "text": "This is a simple demo app!", "class": "header big" },
+        { "type": "button", "text": "This is a simple native button!" },
+        { "type": "hbox", "children": [
+            { "type": "vbox", "children": [
+                { "type": "label", "text": "Item I", "style": { "background-color": "red" } },
+                { "type": "button", "text": "Item II" }
+            ]},
+            { "type": "label", "text": "Item III" }
+        ]},
+        { "type": "hscroll", "style": {"height":"200"}, "child":
+            { "type": "hbox", "children": [
+                    { "type": "label", "text": "Item I", "style": { "padding":"16","width": "200", "background-color": "red" } },
+                    { "type": "label", "text": "Item 2", "style": { "width": "200", "background-color": "teal" } },
+                    { "type": "label", "text": "Item 3", "style": { "width": "200", "background-color": "red" } },
+                    { "type": "label", "text": "Item 4", "style": { "width": "200", "background-color": "teal" } },
+                    { "type": "label", "text": "Item 5", "style": { "width": "200", "background-color": "red" } }
+            ]}
+        }
+    ]
+}

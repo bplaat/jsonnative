@@ -2,7 +2,7 @@
 A native JSON renderer!!! FOR ANDROID!!!
 
 ## How to build your own
-Change the url at the bottom of `MainActivity.java`
+Change the url at the START_URL constant in `MainActivity.java`
 
 ## Web version included!
 See the web.html file!!!
