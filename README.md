@@ -30,10 +30,11 @@ So as you can see contains the body contains a array of widgets / objects, this 
 | Type name     | Child(ren)? | Android class | Description  |
 | ------------- |------------ | ------------- | ------------ |
 | box           | -           | View          | A simple box for decorative purpose: like a horizontal border in a list |
-| vbox          | children    | vertical LinearLayout | A vertical box for children widgets|
-| hbox          | children    | LinearLayout  | A horizontal box for children widgets|
-| vscroll       | child       | ScrollView    | A vertical scroll box for a child widget|
-| hscroll       | child       | HorizontalScrollView | A horizontal scroll box for child widget|
+| vbox          | children    | vertical LinearLayout | A vertical box for children widgets |
+| hbox          | children    | LinearLayout  | A horizontal box for children widgets |
+| vscroll       | child       | ScrollView    | A vertical scroll box for a child widget |
+| hscroll       | child       | HorizontalScrollView | A horizontal scroll box for child widget |
+| stack         | children    | FrameLayout   | A stack layout for child widget |
 | label         | -           | TextView      | A text label |
 | button        | -           | Button        | A native button |
 | image         | -           | ImageView     | A image |
