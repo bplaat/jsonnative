@@ -9,15 +9,20 @@ Change the url at the START_URL constant in `MainActivity.java`
 ## Web version included!
 See the web.html file!!!
 
+This version is very minimal...
+
 ## Syntax
 The syntax of JSON Native is very simple.
 
 The simplest page you can make is:
 ```
 {
-    "body": [
-        { "type": "label", "text": "Hello World!" }
-    ]
+    "body": { "type":"vscroll", "child":
+        { "type": "vbox", "children": [
+            { "type": "label", "text": "Hello World!" },
+            { "type": "button", "text": "Look I'm a simple button!" }
+        ]}
+    }
 }
 ```
 For a more deeper example goto `app.json`.
@@ -30,15 +35,15 @@ So as you can see contains the body contains a array of widgets / objects, this 
 | Type name     | Child(ren)? | Android class | Description  |
 | ------------- |------------ | ------------- | ------------ |
 | box           | -           | View          | A simple box for decorative purpose: like a horizontal border in a list |
-| vbox          | children    | vertical LinearLayout | A vertical box for children widgets |
+| vbox          | children    | (Vertical) LinearLayout | A vertical box for children widgets |
 | hbox          | children    | LinearLayout  | A horizontal box for children widgets |
+| stack         | children    | FrameLayout   | A stack layout for child widget |
 | vscroll       | child       | ScrollView    | A vertical scroll box for a child widget |
 | hscroll       | child       | HorizontalScrollView | A horizontal scroll box for child widget |
-| stack         | children    | FrameLayout   | A stack layout for child widget |
 | label         | -           | TextView      | A text label |
 | button        | -           | Button        | A native button |
-| image         | -           | ImageView     | A image |
 | input         | -           | EditText      | A text input |
+| image         | -           | ImageView     | A image |
 
 ## For more info
 Visit a very similair project called Jasonette:
