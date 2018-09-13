@@ -1,23 +1,17 @@
-# Orignal build script from: https://medium.com/@authmane512/how-to-build-an-apk-from-command-line-without-ide-7260e1e22676
-# Generate a key with: keytool -genkeypair -validity 365 -keystore key.keystore -keyalg RSA -keysize 2048
-# Logcat: ../android-sdk/platform-tools/adb logcat jn:V AndroidRuntime:E *:S
-
-PATH=$PATH:../android-sdk/build-tools/27.0.3:../android-sdk/platform-tools
-PLATFORM=../android-sdk/platforms/android-19/android.jar
-
-echo "Compiling..."
-mkdir classes
-javac -Xlint -d classes -bootclasspath $PLATFORM app/src/com/example/jsonnative/*.java
-dx.bat --dex --output=classes.dex classes
-rm -r classes
-
-echo "Packing..."
-aapt package -F jsonnative.unaligned.apk -M app/AndroidManifest.xml -I $PLATFORM
-aapt add jsonnative.unaligned.apk classes.dex
-zipalign -f 4 jsonnative.unaligned.apk jsonnative.apk
-apksigner.bat sign --ks key.keystore --ks-pass pass:jsonnative --ks-pass pass:jsonnative jsonnative.apk
-rm classes.dex jsonnative.unaligned.apk
-
-echo "Running..."
-adb install -r jsonnative.apk
-adb shell am start -n com.example.jsonnative/.MainActivity
+# keytool -genkey -validity 10000 -keystore key.keystore -keyalg RSA -keysize 2048 -storepass jsonnative -keypass jsonnative
+PATH=$PATH:../android-sdk/build-tools/28.0.2:../android-sdk/platform-tools
+PLATFORM=../android-sdk/platforms/android-28/android.jar
+if aapt package -m -J src -M AndroidManifest.xml -S res -I $PLATFORM; then
+    mkdir build/classes
+    if javac -Xlint -cp $PLATFORM -d build/classes src/com/example/jsonnative/*.java; then
+        dx.bat --dex --output=build/classes.dex build/classes
+        rm -r build/classes src/com/example/jsonnative/R.java build/jsonnative.apk
+        aapt package -F build/jsonnative.apk -M AndroidManifest.xml -S res -I $PLATFORM build
+        rm build/classes.dex
+        apksigner.bat sign --ks key.keystore --ks-pass pass:jsonnative --ks-pass pass:jsonnative build/jsonnative.apk
+        adb install -r build/jsonnative.apk
+        adb shell am start -n com.example.jsonnative/.MainActivity
+    else
+        rm -r build/classes src/com/example/jsonnative/R.java
+    fi
+fi

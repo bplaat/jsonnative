@@ -1,8 +1,26 @@
 {
-    "body": {"type":"stack","children": [
-        {"type":"image","style":{"background-color":"black"},"url":"https://images.duckduckgo.com/iu/?u=http%3A%2F%2Fimages4.fanpop.com%2Fimage%2Fphotos%2F14700000%2FBeautifull-cat-cats-14749885-1600-1200.jpg&f=1"},
-        {"type":"hbox","style":{"height":"200"},"children":[
-            {"type":"label","text":"No internet connection","style":{"background-color":"#ff4444","color":"#ffffff","padding":"16"}}
-        ]}
-    ]}
+    "head":{
+      "styles":{
+        "blue":{"color":"blue"}
+      }
+    },
+    "body":
+    {"type":"vscroll","child":
+    {"type":"vbox","children":[
+      {"type":"hscroll","child":
+      {"type":"hbox","children":[
+        {"type":"label","text":"Hello World","style":{"padding":"24","font-style":"italic","color":"red"}},
+        {"type":"label","text":"Hello Bas en nog veel meer!","style":{"background-color":"yellow"}},
+        {"type":"label","text":"Hello BassieBas!","class":"blue","style":{"font-weight":"bold","font-style":"italic"}},
+        {"type":"label","text":"Hello World en jsika natuurlijk!","style":{"background-color":"green"}}
+      ]}},
+      {"type":"button","text":"Click me!","style":{"background-color":"red"}},
+      {"type":"label","text":"BassieMovies","style":{"margin":"32","padding":"16 8 32 0","color":"#ffffff","background-color":"#1166cc"}},
+      {"type":"image","url":"https://raw.githubusercontent.com/Jasonette/Instagram-UI-example/master/images/audrey.jpg"},
+      {"type":"image","url":"https://raw.githubusercontent.com/Jasonette/Instagram-UI-example/master/images/audrey.jpg"},
+      {"type":"image","url":"https://raw.githubusercontent.com/Jasonette/Instagram-UI-example/master/images/audrey.jpg"},
+      {"type":"image","url":"https://raw.githubusercontent.com/Jasonette/Instagram-UI-example/master/images/audrey.jpg"},
+      {"type":"image","url":"https://raw.githubusercontent.com/Jasonette/Instagram-UI-example/master/images/audrey.jpg"},
+      {"type":"image","url":"https://raw.githubusercontent.com/Jasonette/Instagram-UI-example/master/images/audrey.jpg"}
+    ]}}
 }

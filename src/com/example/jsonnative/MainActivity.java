@@ -1,60 +1,80 @@
 package com.example.jsonnative;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
-
-import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.HorizontalScrollView;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
+import android.widget.FrameLayout;
 import android.widget.TextView;
-
+import android.widget.ScrollView;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final String START_URL = "https://bastiaan.plaatsoft.nl/app.json";
     private JSONObject head;
-
-    private static String fetch(String url) throws Exception {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new URL(url).openConnection().getInputStream()));
-        StringBuilder stringBuilder = new StringBuilder();
-        String line; while ((line = bufferedReader.readLine()) != null) stringBuilder.append(line);
-        bufferedReader.close();
-        return stringBuilder.toString();
+    private FrameLayout root;
+    private class FetchDataTask extends AsyncTask<String, Void, String> {
+        protected String doInBackground(String... urls) {
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new URL(urls[0]).openStream()));
+                StringBuilder stringBuilder = new StringBuilder();
+                String str; while ((str = bufferedReader.readLine()) != null) stringBuilder.append(str).append("\n");
+                bufferedReader.close();
+                return stringBuilder.toString();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        protected void onPostExecute(String data) {
+            try {
+                JSONObject page = new JSONObject(data);
+                head = page.has("head") ? page.getJSONObject("head") : new JSONObject();
+                render((ViewGroup)root, page.getJSONObject("body"));
+            } catch (Exception e) {}
+        }
     }
-
-    private static Bitmap fetchBitmap(String url) throws Exception {
-        return BitmapFactory.decodeStream(new URL(url).openConnection().getInputStream());
+    private class FetchImageTask extends AsyncTask<String, Void, Bitmap> {
+        private ImageView imageView;
+        public FetchImageTask(ImageView imageView) {
+            this.imageView = imageView;
+        }
+        protected Bitmap doInBackground(String... urls) {
+            try {
+                return BitmapFactory.decodeStream(new URL(urls[0]).openStream());
+            } catch (Exception e) {}
+            return null;
+        }
+        protected void onPostExecute(Bitmap image) {
+            imageView.setImageBitmap(image);
+        }
     }
-
     private void render(ViewGroup root, JSONObject child) throws Exception {
-        String type = child.getString("type");
         View view = null;
-
-        // Boxes
-        if (type.equals("box")) view = new View(this);
-        if (type.equals("hbox") || type.equals("vbox")) {
+        String type = child.getString("type");
+        if (type.equals("box")) {
+            view = new View(this);
+        }
+        if (type.equals("hbox")) {
             view = new LinearLayout(this);
-            if (type.equals("vbox")) ((LinearLayout)view).setOrientation(LinearLayout.VERTICAL);
+            JSONArray children = child.getJSONArray("children");
+            for (int i = 0; i < children.length(); i++) render((ViewGroup)view, children.getJSONObject(i));
+        }
+        if (type.equals("vbox")) {
+            view = new LinearLayout(this);
+            ((LinearLayout)view).setOrientation(LinearLayout.VERTICAL);
             JSONArray children = child.getJSONArray("children");
             for (int i = 0; i < children.length(); i++) render((ViewGroup)view, children.getJSONObject(i));
         }
@@ -71,68 +91,36 @@ public class MainActivity extends Activity {
             view = new HorizontalScrollView(this);
             render((ViewGroup)view, child.getJSONObject("child"));
         }
-
-        // Widgets
-        if (type.equals("label")) view = new TextView(this);
-        if (type.equals("button")) view = new Button(this);
-        if (type.equals("input")) {
-            view = new EditText(this);
-            ((EditText)view).setInputType(child.has("password") ? InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD : InputType.TYPE_CLASS_TEXT);
-            if (child.has("placeholder")) ((EditText)view).setHint(child.getString("placeholder"));
+        if (type.equals("label")) {
+            view = new TextView(this);
+            ((TextView)view).setText(child.getString("text"));
+        }
+        if (type.equals("button")) {
+            view = new Button(this);
+            ((TextView)view).setText(child.getString("text"));
         }
         if (type.equals("image")) {
             view = new ImageView(this);
-            ((ImageView)view).setImageBitmap(fetchBitmap(child.getString("url")));
+            new FetchImageTask((ImageView)view).execute(child.getString("url"));
         }
 
-        // Link href onclick Link
-        if (child.has("href")) {
-            view.setTag(child.getJSONObject("href"));
-            view.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    try {
-                        JSONObject href = (JSONObject)view.getTag();
-                        String url = href.getString("url");
-                        if (url.equals("back")) {
-                            MainActivity.this.finish();
-                        } else {
-                            if (href.has("view") && href.getString("view").equals("web")) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                            } else {
-                                Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                                intent.putExtra("url", url);
-                                startActivity(intent);
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.d("jn", Log.getStackTraceString(e));
-                    }
-                }
-            });
-        }
-
-        // Get style
         JSONObject style = child.has("style") ? child.getJSONObject("style") : new JSONObject();
-
-        // Class styles
         if (child.has("class")) {
             String[] classes = child.getString("class").split("\\s+");
-            for (int j = 0; j < classes.length; j++) {
-                JSONObject style_class = head.getJSONObject("styles").getJSONObject(classes[j]);
+            for (int i = 0; i < classes.length; i++) {
+                JSONObject style_class = head.getJSONObject("styles").getJSONObject(classes[i]);
                 JSONArray keys = style_class.names();
-                for (int k = 0; k < keys.length(); k++) {
-                    String key = keys.getString(k);
+                for (int j = 0; j < keys.length(); j++) {
+                    String key = keys.getString(j);
                     if (!style.has(key)) style.put(key, style_class.getString(key));
                 }
             }
         }
 
-        // Width & height
-        int width = style.has("width") ? Integer.parseInt(style.getString("width")) : (root instanceof FrameLayout || ((LinearLayout)root).getOrientation() == LinearLayout.VERTICAL ? LinearLayout.LayoutParams.MATCH_PARENT : LinearLayout.LayoutParams.WRAP_CONTENT),
-            height = style.has("height") ? Integer.parseInt(style.getString("height")) : (root instanceof FrameLayout ? LinearLayout.LayoutParams.MATCH_PARENT : LinearLayout.LayoutParams.WRAP_CONTENT);
-        ViewGroup.LayoutParams layoutParams = root instanceof LinearLayout ? new LinearLayout.LayoutParams(width, height) : new FrameLayout.LayoutParams(width, height);
+        int width = style.has("width") ? Integer.parseInt(style.getString("width")) : (root instanceof FrameLayout || ((LinearLayout)root).getOrientation() == LinearLayout.VERTICAL ? LinearLayout.LayoutParams.MATCH_PARENT : LinearLayout.LayoutParams.WRAP_CONTENT);
+        int height = style.has("height") ? Integer.parseInt(style.getString("height")) : (root instanceof FrameLayout ? LinearLayout.LayoutParams.MATCH_PARENT : LinearLayout.LayoutParams.WRAP_CONTENT);
+        ViewGroup.LayoutParams layoutParams = root instanceof LinearLayout ? new LinearLayout.LayoutParams(width, height) : new ViewGroup.LayoutParams(width, height);
 
-        // Margin
         if (root instanceof LinearLayout) {
             int marginTop = 0, marginRight = 0, marginBottom = 0, marginLeft = 0;
             if (style.has("margin")) {
@@ -149,7 +137,6 @@ public class MainActivity extends Activity {
             if (marginTop != 0 || marginRight != 0 || marginBottom != 0 || marginLeft != 0) ((LinearLayout.LayoutParams)layoutParams).setMargins(marginLeft, marginTop, marginRight, marginBottom);
         }
 
-        // Padding
         int paddingTop = 0, paddingRight = 0, paddingBottom = 0, paddingLeft = 0;
         if (style.has("padding")) {
             String[] paddings = style.getString("padding").split("\\s+");
@@ -164,35 +151,27 @@ public class MainActivity extends Activity {
         if (style.has("padding-left")) paddingLeft = Integer.parseInt(style.getString("padding-left"));
         if (paddingTop != 0 || paddingRight != 0 || paddingBottom != 0 || paddingLeft != 0) view.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
 
-        // Background color
         if (style.has("background-color")) view.setBackgroundColor(Color.parseColor(style.getString("background-color")));
-
-        // Text/Font styles
-        if (view instanceof TextView) {
-            if (child.has("text")) ((TextView)view).setText(child.getString("text"));
+        
+        if (type.equals("label") || type.equals("button")) {
             if (style.has("color")) ((TextView)view).setTextColor(Color.parseColor(style.getString("color")));
             if (style.has("font-size")) ((TextView)view).setTextSize(Float.parseFloat(style.getString("font-size")));
-            if (style.has("font-weight") && style.getString("font-weight").equals("bold")) ((TextView)view).setTypeface(null, Typeface.BOLD);
-            if (style.has("font-style") && style.getString("font-style").equals("italic")) ((TextView)view).setTypeface(null,
-                style.has("font-weight") && style.getString("font-weight").equals("bold") ? Typeface.BOLD_ITALIC : Typeface.ITALIC);
+            if (style.has("font-weight") && style.getString("font-weight").equals("bold")) {
+                if (style.has("font-style") && style.getString("font-style").equals("italic")) {
+                    ((TextView)view).setTypeface(null, Typeface.BOLD_ITALIC);
+                } else {
+                    ((TextView)view).setTypeface(null, Typeface.BOLD);
+                }
+            } else if (style.has("font-style") && style.getString("font-style").equals("italic")) {
+                ((TextView)view).setTypeface(null, Typeface.ITALIC);
+            }
         }
-
         view.setLayoutParams(layoutParams);
         root.addView(view);
     }
-
     protected void onCreate(Bundle savedInstanceState) {
-        try {
-            super.onCreate(savedInstanceState);
-            FrameLayout root = new FrameLayout(this);
-            setContentView(root);
-            
-            Intent intent = getIntent();
-            JSONObject page = new JSONObject(fetch(intent.hasExtra("url") ? intent.getStringExtra("url") : START_URL));
-            head = page.has("head") ? page.getJSONObject("head") : new JSONObject();
-            render(root, page.getJSONObject("body"));
-        } catch (Exception e) {
-            Log.d("jn", Log.getStackTraceString(e));
-        }
+        super.onCreate(savedInstanceState);
+        setContentView(root = new FrameLayout(this));
+        new FetchDataTask().execute(START_URL);
     }
 }

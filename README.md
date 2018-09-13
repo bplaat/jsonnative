@@ -42,7 +42,6 @@ So as you can see contains the body contains a array of widgets / objects, this 
 | hscroll       | child       | HorizontalScrollView | A horizontal scroll box for child widget |
 | label         | -           | TextView      | A text label |
 | button        | -           | Button        | A native button |
-| input         | -           | EditText      | A text input |
 | image         | -           | ImageView     | A image |
 
 ## For more info
@@ -50,3 +49,6 @@ Visit a very similair project called Jasonette:
 - http://jasonette.com/
 - http://docs.jasonette.com/
 - https://github.com/Jasonette/JASONETTE-Android
+
+## A look at this cute icon!!!
+![Logo](web_hi_res_512.png)
